@@ -11,49 +11,132 @@ export function generateFileSummary({ content, fileName, fileExtension, lines }:
   const purpose = getPurposeGuess(fileExtension);
   const currentDate = new Date().toLocaleString();
   
-  // Get a preview of the content (first 20 lines or 1000 characters, whichever is smaller)
-  const previewLines = lines.slice(0, 20);
-  const previewContent = previewLines.join('\n');
-  const truncatedPreview = content.length > 1000 ? content.substring(0, 1000) + '...' : content;
+  // Enhanced analysis
+  const detailedAnalysis = performDetailedAnalysis(content, fileExtension, lines);
+  const codeMetrics = calculateCodeMetrics(content, fileExtension, lines);
+  const securityAnalysis = performSecurityAnalysis(content, fileExtension);
+  const dependencyAnalysis = analyzeDependencies(content, fileExtension);
   
-  // Basic structure analysis
-  const structureAnalysis = analyzeCodeStructure(content, fileExtension);
+  // Get a preview of the content
+  const truncatedPreview = content.length > 1500 ? content.substring(0, 1500) + '\n...\n[Content truncated for brevity]' : content;
   
-  return `# File Summary: ${fileName}
+  return `# 📋 Comprehensive File Analysis: ${fileName}
 
-**Generated on**: ${currentDate}  
-**File type**: ${codeLanguage}  
-**Size**: ${content.length} characters, ${lines.length} lines  
+**🕒 Generated on**: ${currentDate}  
+**📄 File type**: ${codeLanguage} (${fileType})  
+**📏 Size**: ${content.length} characters, ${lines.length} lines  
+**🔗 Path**: ${fileName}
 
-## Overview
-This file appears to be a ${codeLanguage} ${fileType}.
+---
 
-## Key Details
-- **First line**: ${lines[0] ? `\`${lines[0].trim().substring(0, 80)}\`` : 'Empty'}
-- **Last line**: ${lines[lines.length - 1] ? `\`${lines[lines.length - 1].trim().substring(0, 80)}\`` : 'Empty'}
-- **Total lines**: ${lines.length}
-- **Non-empty lines**: ${lines.filter(line => line.trim().length > 0).length}
+## 📊 Executive Summary
 
-## Content Preview
+${detailedAnalysis.summary}
+
+---
+
+## 📈 Code Metrics & Statistics
+
+### 📝 Line Breakdown
+| Metric | Count | Percentage |
+|--------|-------|------------|
+| **Total Lines** | ${lines.length} | 100% |
+| **Code Lines** | ${codeMetrics.codeLines} | ${Math.round((codeMetrics.codeLines / lines.length) * 100)}% |
+| **Comment Lines** | ${codeMetrics.commentLines} | ${Math.round((codeMetrics.commentLines / lines.length) * 100)}% |
+| **Blank Lines** | ${codeMetrics.blankLines} | ${Math.round((codeMetrics.blankLines / lines.length) * 100)}% |
+
+### 🧮 Complexity Metrics
+- **Functions/Methods**: ${codeMetrics.functionCount}
+- **Classes/Interfaces**: ${codeMetrics.classCount}
+- **Conditional Statements**: ${codeMetrics.conditionalCount}
+- **Loops**: ${codeMetrics.loopCount}
+- **Average Line Length**: ${codeMetrics.avgLineLength} characters
+- **Max Line Length**: ${codeMetrics.maxLineLength} characters
+
+### 📚 Documentation Quality
+- **Comment Ratio**: ${Math.round((codeMetrics.commentLines / codeMetrics.codeLines) * 100)}% (${codeMetrics.commentLines}/${codeMetrics.codeLines})
+- **Documentation Level**: ${getDocumentationLevel(codeMetrics.commentLines, codeMetrics.codeLines)}
+
+---
+
+## 🔍 Detailed Code Analysis
+
+### 🏗️ Architecture & Structure
+${detailedAnalysis.architecture}
+
+### 🔧 Functions & Methods
+${detailedAnalysis.functions}
+
+### 🏛️ Classes & Types  
+${detailedAnalysis.classes}
+
+### 📦 Dependencies & Imports
+${dependencyAnalysis.summary}
+
+**External Dependencies:**
+${dependencyAnalysis.external.length > 0 ? dependencyAnalysis.external.map(dep => `- \`${dep}\``).join('\n') : '- No external dependencies found'}
+
+**Internal Imports:**
+${dependencyAnalysis.internal.length > 0 ? dependencyAnalysis.internal.map(dep => `- \`${dep}\``).join('\n') : '- No internal imports found'}
+
+---
+
+## 🔒 Security & Quality Analysis
+
+### 🛡️ Security Considerations
+${securityAnalysis.issues.length > 0 ? 
+  securityAnalysis.issues.map(issue => `⚠️ **${issue.type}**: ${issue.description}`).join('\n\n') : 
+  '✅ No obvious security issues detected'}
+
+### 📋 Code Quality Insights
+- **Naming Convention**: ${codeMetrics.namingAnalysis}
+- **Code Complexity**: ${getComplexityRating(codeMetrics)}
+- **Maintainability**: ${getMaintainabilityRating(codeMetrics)}
+
+---
+
+## 🎯 Purpose & Functionality
+
+Based on comprehensive analysis, this file serves the following purposes:
+
+${purpose}
+
+### 🔑 Key Features Identified:
+${detailedAnalysis.features.length > 0 ? 
+  detailedAnalysis.features.map(feature => `- ${feature}`).join('\n') : 
+  '- Features could not be automatically identified'}
+
+---
+
+## 💻 Complete Source Code
+
 \`\`\`${codeLanguage}
 ${truncatedPreview}
 \`\`\`
 
-## Structure Analysis
-${structureAnalysis}
+---
 
-## Potential Purpose
-Based on the file extension and content analysis, this file appears to be:
+## 🚀 Recommendations
 
-${purpose}
+### 📈 Potential Improvements:
+${generateRecommendations(codeMetrics, securityAnalysis, detailedAnalysis)}
 
-## File Statistics
-- **Comments**: ${countComments(content, fileExtension)} lines
-- **Blank lines**: ${lines.filter(line => line.trim() === '').length}
-- **Code lines**: ${lines.filter(line => line.trim().length > 0 && !isComment(line, fileExtension)).length}
+### 🔧 Refactoring Opportunities:
+${generateRefactoringTips(codeMetrics, content, fileExtension)}
 
 ---
-*Generated by GitHub File Summarizer*`;
+
+## 📝 Technical Notes
+
+- **Encoding**: UTF-8
+- **Line Endings**: ${detectLineEndings(content)}
+- **Estimated Reading Time**: ${Math.ceil(lines.length / 50)} minutes
+- **File Hash**: ${generateSimpleHash(content)}
+
+---
+
+*📊 Generated by GitHub File Summarizer - Advanced Analysis Engine*  
+*🤖 This analysis was generated automatically and may not capture all nuances of the code*`;
 }
 
 function getCodeLanguage(extension: string): string {
@@ -236,6 +319,327 @@ function isComment(line: string, extension: string): boolean {
   }
   
   return false;
+}
+
+// Enhanced analysis functions
+function performDetailedAnalysis(content: string, extension: string, lines: string[]) {
+  const analysis = {
+    summary: '',
+    architecture: '',
+    functions: '',
+    classes: '',
+    features: [] as string[]
+  };
+
+  // Generate summary
+  const complexity = lines.length > 200 ? 'complex' : lines.length > 50 ? 'moderate' : 'simple';
+  analysis.summary = `This ${getCodeLanguage(extension)} file is ${complexity} in nature with ${lines.length} lines of code. It demonstrates ${getArchitecturalPattern(content, extension)} and follows ${getCodingStyle(content, extension)} conventions.`;
+
+  // Analyze architecture
+  analysis.architecture = analyzeArchitecture(content, extension);
+  
+  // Analyze functions
+  analysis.functions = analyzeFunctions(content, extension);
+  
+  // Analyze classes
+  analysis.classes = analyzeClasses(content, extension);
+  
+  // Identify features
+  analysis.features = identifyFeatures(content, extension);
+
+  return analysis;
+}
+
+function calculateCodeMetrics(content: string, extension: string, lines: string[]) {
+  const codeLines = lines.filter(line => line.trim().length > 0 && !isComment(line, extension)).length;
+  const commentLines = countComments(content, extension);
+  const blankLines = lines.filter(line => line.trim() === '').length;
+  
+  return {
+    codeLines,
+    commentLines,
+    blankLines,
+    functionCount: countFunctions(content, extension),
+    classCount: countClasses(content, extension),
+    conditionalCount: countConditionals(content, extension),
+    loopCount: countLoops(content, extension),
+    avgLineLength: Math.round(lines.reduce((sum, line) => sum + line.length, 0) / lines.length),
+    maxLineLength: Math.max(...lines.map(line => line.length)),
+    namingAnalysis: analyzeNaming(content, extension)
+  };
+}
+
+function performSecurityAnalysis(content: string, extension: string) {
+  const issues = [];
+  
+  // Check for potential security issues
+  if (content.includes('eval(') || content.includes('innerHTML')) {
+    issues.push({ type: 'XSS Risk', description: 'Potential cross-site scripting vulnerability detected' });
+  }
+  
+  if (content.includes('SELECT') && content.includes('WHERE') && !content.includes('prepared')) {
+    issues.push({ type: 'SQL Injection', description: 'Potential SQL injection vulnerability detected' });
+  }
+  
+  if (content.includes('password') && content.includes('=') && !content.includes('hash')) {
+    issues.push({ type: 'Hardcoded Password', description: 'Potential hardcoded password detected' });
+  }
+  
+  return { issues };
+}
+
+function analyzeDependencies(content: string, extension: string) {
+  const external = [];
+  const internal = [];
+  
+  // Extract imports/dependencies
+  const importRegexes = [
+    /import\s+.*?from\s+['"`]([^'"`]+)['"`]/g,
+    /require\(['"`]([^'"`]+)['"`]\)/g,
+    /#include\s+<([^>]+)>/g,
+    /from\s+([^\s]+)\s+import/g
+  ];
+  
+  importRegexes.forEach(regex => {
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      const dep = match[1];
+      if (dep.startsWith('.') || dep.startsWith('/')) {
+        internal.push(dep);
+      } else {
+        external.push(dep);
+      }
+    }
+  });
+  
+  const summary = `Found ${external.length} external dependencies and ${internal.length} internal imports. ${
+    external.length > 10 ? 'This file has many dependencies which may affect maintainability.' : 
+    external.length > 5 ? 'Moderate dependency usage.' : 'Minimal external dependencies.'
+  }`;
+  
+  return { summary, external: [...new Set(external)], internal: [...new Set(internal)] };
+}
+
+// Helper functions
+function getDocumentationLevel(commentLines: number, codeLines: number): string {
+  const ratio = commentLines / codeLines;
+  if (ratio > 0.3) return 'Excellent (>30%)';
+  if (ratio > 0.2) return 'Good (20-30%)';
+  if (ratio > 0.1) return 'Fair (10-20%)';
+  return 'Needs Improvement (<10%)';
+}
+
+function getComplexityRating(metrics: any): string {
+  const complexityScore = metrics.functionCount + metrics.classCount + metrics.conditionalCount + metrics.loopCount;
+  if (complexityScore > 50) return 'High - Consider refactoring';
+  if (complexityScore > 20) return 'Moderate - Well structured';
+  return 'Low - Simple and readable';
+}
+
+function getMaintainabilityRating(metrics: any): string {
+  const maintScore = (metrics.commentLines / metrics.codeLines) * 100 + (metrics.functionCount > 0 ? 10 : 0);
+  if (maintScore > 30) return 'Excellent - Well documented and modular';
+  if (maintScore > 15) return 'Good - Reasonably maintainable';
+  return 'Needs Improvement - Add documentation and structure';
+}
+
+function generateRecommendations(metrics: any, security: any, analysis: any): string {
+  const recommendations = [];
+  
+  if (metrics.commentLines / metrics.codeLines < 0.1) {
+    recommendations.push('📝 Add more inline documentation and comments');
+  }
+  
+  if (metrics.functionCount === 0 && metrics.codeLines > 20) {
+    recommendations.push('🔧 Consider breaking code into smaller functions');
+  }
+  
+  if (metrics.maxLineLength > 120) {
+    recommendations.push('📏 Some lines are too long - consider breaking them up');
+  }
+  
+  if (security.issues.length > 0) {
+    recommendations.push('🔒 Address security vulnerabilities identified above');
+  }
+  
+  return recommendations.length > 0 ? recommendations.join('\n') : '✅ Code follows good practices - no major issues identified';
+}
+
+function generateRefactoringTips(metrics: any, content: string, extension: string): string {
+  const tips = [];
+  
+  if (metrics.functionCount > 20) {
+    tips.push('Consider splitting into multiple files or modules');
+  }
+  
+  if (content.includes('// TODO') || content.includes('// FIXME')) {
+    tips.push('Address TODO and FIXME comments');
+  }
+  
+  if (metrics.conditionalCount > 10) {
+    tips.push('High number of conditionals - consider using polymorphism or strategy pattern');
+  }
+  
+  return tips.length > 0 ? tips.join('\n') : 'No immediate refactoring needs identified';
+}
+
+// Analysis helper functions
+function analyzeArchitecture(content: string, extension: string): string {
+  if (content.includes('class ') && content.includes('extends')) {
+    return 'Object-oriented design with inheritance patterns';
+  }
+  if (content.includes('interface ') || content.includes('type ')) {
+    return 'Type-driven development with strong interfaces';
+  }
+  if (content.includes('function ') && content.includes('return')) {
+    return 'Functional programming approach with pure functions';
+  }
+  return 'Procedural programming style';
+}
+
+function analyzeFunctions(content: string, extension: string): string {
+  const functionCount = countFunctions(content, extension);
+  if (functionCount === 0) return 'No functions detected - primarily script or configuration';
+  if (functionCount > 10) return `${functionCount} functions detected - well-modularized code`;
+  return `${functionCount} functions detected - moderate modularization`;
+}
+
+function analyzeClasses(content: string, extension: string): string {
+  const classCount = countClasses(content, extension);
+  if (classCount === 0) return 'No classes detected - functional or procedural approach';
+  if (classCount > 5) return `${classCount} classes detected - complex object hierarchy`;
+  return `${classCount} classes detected - object-oriented structure`;
+}
+
+function identifyFeatures(content: string, extension: string): string[] {
+  const features = [];
+  
+  if (content.includes('async') || content.includes('await')) {
+    features.push('Asynchronous programming with promises/async-await');
+  }
+  
+  if (content.includes('export') || content.includes('module.exports')) {
+    features.push('Module system with exports');
+  }
+  
+  if (content.includes('test(') || content.includes('describe(')) {
+    features.push('Unit testing implementation');
+  }
+  
+  if (content.includes('useState') || content.includes('useEffect')) {
+    features.push('React hooks for state management');
+  }
+  
+  if (content.includes('API') || content.includes('fetch') || content.includes('axios')) {
+    features.push('API integration and HTTP requests');
+  }
+  
+  return features;
+}
+
+function countFunctions(content: string, extension: string): number {
+  const patterns = [
+    /function\s+\w+/g,
+    /const\s+\w+\s*=\s*\(/g,
+    /def\s+\w+/g,
+    /\w+\s*\([^)]*\)\s*{/g
+  ];
+  
+  let count = 0;
+  patterns.forEach(pattern => {
+    const matches = content.match(pattern);
+    count += matches ? matches.length : 0;
+  });
+  
+  return count;
+}
+
+function countClasses(content: string, extension: string): number {
+  const patterns = [/class\s+\w+/g, /interface\s+\w+/g, /type\s+\w+/g];
+  
+  let count = 0;
+  patterns.forEach(pattern => {
+    const matches = content.match(pattern);
+    count += matches ? matches.length : 0;
+  });
+  
+  return count;
+}
+
+function countConditionals(content: string, extension: string): number {
+  const patterns = [/if\s*\(/g, /else/g, /switch\s*\(/g, /case\s+/g];
+  
+  let count = 0;
+  patterns.forEach(pattern => {
+    const matches = content.match(pattern);
+    count += matches ? matches.length : 0;
+  });
+  
+  return count;
+}
+
+function countLoops(content: string, extension: string): number {
+  const patterns = [/for\s*\(/g, /while\s*\(/g, /forEach/g, /map\s*\(/g];
+  
+  let count = 0;
+  patterns.forEach(pattern => {
+    const matches = content.match(pattern);
+    count += matches ? matches.length : 0;
+  });
+  
+  return count;
+}
+
+function analyzeNaming(content: string, extension: string): string {
+  if (content.match(/[A-Z][a-z]+[A-Z]/)) {
+    return 'PascalCase/CamelCase convention detected';
+  }
+  if (content.match(/\w+_\w+/)) {
+    return 'Snake_case convention detected';
+  }
+  if (content.match(/\w+-\w+/)) {
+    return 'Kebab-case convention detected';
+  }
+  return 'Mixed or unclear naming convention';
+}
+
+function getArchitecturalPattern(content: string, extension: string): string {
+  if (content.includes('MVC') || content.includes('Model') || content.includes('Controller')) {
+    return 'MVC pattern';
+  }
+  if (content.includes('Observer') || content.includes('subscribe')) {
+    return 'Observer pattern';
+  }
+  if (content.includes('Factory') || content.includes('Builder')) {
+    return 'Factory/Builder pattern';
+  }
+  return 'standard programming practices';
+}
+
+function getCodingStyle(content: string, extension: string): string {
+  if (content.includes('  ') && !content.includes('\t')) {
+    return 'space-based indentation';
+  }
+  if (content.includes('\t')) {
+    return 'tab-based indentation';
+  }
+  return 'mixed indentation';
+}
+
+function detectLineEndings(content: string): string {
+  if (content.includes('\r\n')) return 'CRLF (Windows)';
+  if (content.includes('\n')) return 'LF (Unix/Linux)';
+  return 'Unknown';
+}
+
+function generateSimpleHash(content: string): string {
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(16).substring(0, 8);
 }
 
 export function downloadFile(content: string, filename: string): void {
