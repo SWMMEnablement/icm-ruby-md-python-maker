@@ -1,6 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Download, FileText, Copy, Check, Code2, ArrowRight } from 'lucide-react';
 import { downloadFile } from '@/utils/fileSummary';
 import { convertRubyToPython, generateConversionReport } from '@/utils/rubyToPython';
@@ -24,16 +26,16 @@ export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({
   const [convertedCode, setConvertedCode] = useState<string | null>(null);
   const [conversionReport, setConversionReport] = useState<string | null>(null);
   const [isConverting, setIsConverting] = useState(false);
+  const [markdownFileName, setMarkdownFileName] = useState(`${fileName.split('.')[0]}.md`);
   const { toast } = useToast();
 
   const isRubyFile = fileName.toLowerCase().endsWith('.rb');
 
   const handleDownload = () => {
-    const summaryFileName = `${fileName.split('.')[0]}_summary.md`;
-    downloadFile(summary, summaryFileName);
+    downloadFile(summary, markdownFileName);
     toast({
       title: "Download started",
-      description: `${summaryFileName} is being downloaded.`,
+      description: `${markdownFileName} is being downloaded.`,
     });
   };
 
@@ -112,6 +114,19 @@ export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
+          <div className="mb-6">
+            <Label htmlFor="markdown-filename" className="text-sm font-medium mb-2 block">
+              Markdown filename:
+            </Label>
+            <Input
+              id="markdown-filename"
+              value={markdownFileName}
+              onChange={(e) => setMarkdownFileName(e.target.value)}
+              placeholder="Enter filename..."
+              className="w-full max-w-md"
+            />
+          </div>
+          
           <div className="flex flex-wrap gap-3 mb-6">
             <Button onClick={handleDownload} variant="default" size="lg">
               <Download className="w-4 h-4 mr-2" />
