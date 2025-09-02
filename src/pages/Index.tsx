@@ -56,7 +56,7 @@ const Index = () => {
           style={{ backgroundImage: `url(${heroImage})` }}
         />
         <div className="relative bg-gradient-hero">
-          <div className="container mx-auto px-4 py-20 text-center text-white">
+          <div className="container mx-auto px-4 py-12 text-center text-white">
             <div className="flex justify-center mb-6">
               <div className="p-4 bg-white/10 rounded-full backdrop-blur-sm animate-float">
                 <Github className="w-12 h-12" />
