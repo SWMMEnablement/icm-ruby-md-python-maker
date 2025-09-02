@@ -8,6 +8,7 @@ import heroImage from '@/assets/hero-image.jpg';
 
 const Index = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileContent, setFileContent] = useState<string>('');
   const [summary, setSummary] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -17,6 +18,7 @@ const Index = () => {
     
     try {
       const content = await file.text();
+      setFileContent(content);
       const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
       const lines = content.split('\n');
       
@@ -40,6 +42,7 @@ const Index = () => {
 
   const handleReset = () => {
     setSelectedFile(null);
+    setFileContent('');
     setSummary('');
     setIsProcessing(false);
   };
@@ -63,7 +66,7 @@ const Index = () => {
               GitHub File Summarizer
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto">
-              Transform your code files into beautiful, comprehensive Markdown summaries instantly
+              Transform code files into detailed Markdown summaries and convert Ruby to Python instantly
             </p>
             <div className="flex justify-center gap-8 text-sm">
               <div className="flex items-center gap-2">
@@ -90,8 +93,8 @@ const Index = () => {
             <div className="text-center space-y-4">
               <h2 className="text-3xl font-bold">Upload Your File</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Drag and drop any code file to generate a comprehensive summary with structure analysis, 
-                purpose detection, and detailed statistics.
+                Drag and drop any code file to generate comprehensive summaries with structure analysis, 
+                purpose detection, and detailed statistics. Ruby files get automatic Python conversion!
               </p>
             </div>
             
@@ -128,9 +131,9 @@ const Index = () => {
                   <div className="w-12 h-12 bg-primary-glow/10 rounded-lg flex items-center justify-center mx-auto">
                     <Github className="w-6 h-6 text-primary-glow" />
                   </div>
-                  <h3 className="text-xl font-semibold">Multiple Languages</h3>
+                  <h3 className="text-xl font-semibold">Ruby to Python</h3>
                   <p className="text-muted-foreground">
-                    Supports 20+ programming languages including JavaScript, Python, Java, Go, and more.
+                    Automatically converts Ruby code to Python with detailed conversion reports and manual review guidance.
                   </p>
                 </CardContent>
               </Card>
@@ -140,6 +143,7 @@ const Index = () => {
           <SummaryDisplay 
             summary={summary} 
             fileName={selectedFile?.name || ''} 
+            fileContent={fileContent}
             onReset={handleReset}
           />
         )}
