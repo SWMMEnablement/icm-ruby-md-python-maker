@@ -33,12 +33,42 @@ export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({
 
   const isRubyFile = fileName.toLowerCase().endsWith('.rb');
 
-  const handleDownload = () => {
-    downloadFile(summary, markdownFileName);
-    toast({
-      title: "Download started",
-      description: `${markdownFileName} is being downloaded.`,
-    });
+  const handleDownload = async () => {
+    try {
+      // Use File System Access API if available
+      if ('showSaveFilePicker' in window) {
+        const fileHandle = await (window as any).showSaveFilePicker({
+          suggestedName: markdownFileName,
+          types: [{
+            description: 'Markdown files',
+            accept: { 'text/markdown': ['.md'] }
+          }]
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(summary);
+        await writable.close();
+        
+        toast({
+          title: "File saved successfully",
+          description: `File saved to your chosen location.`,
+        });
+      } else {
+        // Fallback to regular download
+        downloadFile(summary, markdownFileName);
+        toast({
+          title: "Download started",
+          description: `${markdownFileName} is being downloaded.`,
+        });
+      }
+    } catch (error) {
+      if ((error as any).name !== 'AbortError') {
+        toast({
+          title: "Save failed",
+          description: "Unable to save file.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleCopy = async () => {
@@ -84,25 +114,87 @@ export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({
     }
   };
 
-  const handleDownloadPython = () => {
+  const handleDownloadPython = async () => {
     if (convertedCode) {
       const pythonFileName = fileName.replace('.rb', '.py');
-      downloadFile(convertedCode, pythonFileName);
-      toast({
-        title: "Python file downloaded",
-        description: `${pythonFileName} has been downloaded.`,
-      });
+      
+      try {
+        // Use File System Access API if available
+        if ('showSaveFilePicker' in window) {
+          const fileHandle = await (window as any).showSaveFilePicker({
+            suggestedName: pythonFileName,
+            types: [{
+              description: 'Python files',
+              accept: { 'text/x-python': ['.py'] }
+            }]
+          });
+          const writable = await fileHandle.createWritable();
+          await writable.write(convertedCode);
+          await writable.close();
+          
+          toast({
+            title: "Python file saved successfully",
+            description: `File saved to your chosen location.`,
+          });
+        } else {
+          // Fallback to regular download
+          downloadFile(convertedCode, pythonFileName);
+          toast({
+            title: "Python file downloaded",
+            description: `${pythonFileName} has been downloaded.`,
+          });
+        }
+      } catch (error) {
+        if ((error as any).name !== 'AbortError') {
+          toast({
+            title: "Save failed",
+            description: "Unable to save Python file.",
+            variant: "destructive",
+          });
+        }
+      }
     }
   };
 
-  const handleDownloadConversionReport = () => {
+  const handleDownloadConversionReport = async () => {
     if (conversionReport) {
       const reportFileName = `${fileName.split('.')[0]}_conversion_report.md`;
-      downloadFile(conversionReport, reportFileName);
-      toast({
-        title: "Conversion report downloaded",
-        description: `${reportFileName} has been downloaded.`,
-      });
+      
+      try {
+        // Use File System Access API if available
+        if ('showSaveFilePicker' in window) {
+          const fileHandle = await (window as any).showSaveFilePicker({
+            suggestedName: reportFileName,
+            types: [{
+              description: 'Markdown files',
+              accept: { 'text/markdown': ['.md'] }
+            }]
+          });
+          const writable = await fileHandle.createWritable();
+          await writable.write(conversionReport);
+          await writable.close();
+          
+          toast({
+            title: "Report saved successfully",
+            description: `File saved to your chosen location.`,
+          });
+        } else {
+          // Fallback to regular download
+          downloadFile(conversionReport, reportFileName);
+          toast({
+            title: "Conversion report downloaded",
+            description: `${reportFileName} has been downloaded.`,
+          });
+        }
+      } catch (error) {
+        if ((error as any).name !== 'AbortError') {
+          toast({
+            title: "Save failed",
+            description: "Unable to save report file.",
+            variant: "destructive",
+          });
+        }
+      }
     }
   };
 
