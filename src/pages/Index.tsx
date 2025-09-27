@@ -102,36 +102,36 @@ const Index = () => {
             
             {/* Features Section */}
             <div className="grid md:grid-cols-3 gap-6 mt-16">
-              <Card className="text-center p-6 shadow-soft hover:shadow-elegant transition-all duration-300">
+              <Card className="text-center p-6 shadow-soft hover:shadow-colorful transition-all duration-300 border border-primary/20">
                 <CardContent className="space-y-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
-                    <FileText className="w-6 h-6 text-primary" />
+                  <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center mx-auto shadow-colorful">
+                    <FileText className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold">Smart Analysis</h3>
+                  <h3 className="text-xl font-semibold bg-gradient-primary bg-clip-text text-transparent">Smart Analysis</h3>
                   <p className="text-muted-foreground">
                     Automatically detects file type, purpose, and structure with intelligent code analysis.
                   </p>
                 </CardContent>
               </Card>
               
-              <Card className="text-center p-6 shadow-soft hover:shadow-elegant transition-all duration-300">
+              <Card className="text-center p-6 shadow-soft hover:shadow-colorful transition-all duration-300 border border-accent/20">
                 <CardContent className="space-y-4">
-                  <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto">
-                    <Sparkles className="w-6 h-6 text-accent" />
+                  <div className="w-12 h-12 bg-gradient-warning rounded-lg flex items-center justify-center mx-auto shadow-colorful">
+                    <Sparkles className="w-6 h-6 text-warning-foreground" />
                   </div>
-                  <h3 className="text-xl font-semibold">Beautiful Formatting</h3>
+                  <h3 className="text-xl font-semibold bg-gradient-warning bg-clip-text text-transparent">Beautiful Formatting</h3>
                   <p className="text-muted-foreground">
                     Generates clean, well-structured Markdown with syntax highlighting and proper formatting.
                   </p>
                 </CardContent>
               </Card>
               
-              <Card className="text-center p-6 shadow-soft hover:shadow-elegant transition-all duration-300">
+              <Card className="text-center p-6 shadow-soft hover:shadow-colorful transition-all duration-300 border border-success/20">
                 <CardContent className="space-y-4">
-                  <div className="w-12 h-12 bg-primary-glow/10 rounded-lg flex items-center justify-center mx-auto">
-                    <Github className="w-6 h-6 text-primary-glow" />
+                  <div className="w-12 h-12 bg-gradient-success rounded-lg flex items-center justify-center mx-auto shadow-colorful">
+                    <Github className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold">Ruby to Python</h3>
+                  <h3 className="text-xl font-semibold bg-gradient-success bg-clip-text text-transparent">Ruby to Python</h3>
                   <p className="text-muted-foreground">
                     Automatically converts Ruby code to Python with detailed conversion reports and manual review guidance.
                   </p>
