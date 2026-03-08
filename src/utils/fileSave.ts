@@ -9,7 +9,7 @@ interface SaveFileOptions {
 
 export async function saveFile(
   options: SaveFileOptions,
-  toast: (opts: { title: string; description: string; variant?: string }) => void
+  toast: (opts: { title: string; description: string; variant?: 'default' | 'destructive' }) => void
 ): Promise<void> {
   try {
     if ('showSaveFilePicker' in window) {
