@@ -8,7 +8,6 @@ import { saveFile } from '@/utils/fileSave';
 
 interface DownloadActionsProps {
   summary: string;
-  fileName: string;
   isRubyFile: boolean;
   isConverting: boolean;
   onConvert: () => void;
