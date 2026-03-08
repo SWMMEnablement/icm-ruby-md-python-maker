@@ -18,8 +18,15 @@
 7. [Dependencies](#dependencies)
 8. [Configuration Files](#configuration-files)
 9. [How to Run Locally](#how-to-run-locally)
-10. [Porting to Another Project](#porting-to-another-project)
-11. [Known Limitations & TODOs](#known-limitations--todos)
+10. [Environment Variables & Secrets](#environment-variables--secrets)
+11. [Deployment Instructions](#deployment-instructions)
+12. [Testing Strategies](#testing-strategies)
+13. [Performance & Optimization](#performance--optimization)
+14. [Browser Compatibility](#browser-compatibility)
+15. [Accessibility (a11y)](#accessibility-a11y)
+16. [Troubleshooting & FAQ](#troubleshooting--faq)
+17. [Porting to Another Project](#porting-to-another-project)
+18. [Known Limitations & TODOs](#known-limitations--todos)
 
 ---
 
