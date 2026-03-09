@@ -50,8 +50,11 @@ src/
 ├── assets/
 │   └── hero-image.jpg              # Hero background image
 ├── components/
+│   ├── ConversionResults.tsx        # Python conversion results display
+│   ├── DownloadActions.tsx          # Download, copy, convert action buttons
 │   ├── FileUploadZone.tsx           # Drag & drop file upload component
-│   ├── SummaryDisplay.tsx           # Results display with download/copy/convert actions
+│   ├── SourceCodeViewer.tsx         # Collapsible tabbed source code viewer
+│   ├── SummaryDisplay.tsx           # Results orchestrator (composes sub-components)
 │   └── ui/                          # shadcn/ui component library (60+ components)
 │       ├── button.tsx               # Custom variants: hero, upload
 │       ├── card.tsx
@@ -69,6 +72,7 @@ src/
 │   ├── Index.tsx                    # Main page (hero + upload + results)
 │   └── NotFound.tsx                 # 404 page
 ├── utils/
+│   ├── fileSave.ts                  # Shared file save/download utility
 │   ├── fileSummary.ts               # Core analysis engine (655 lines)
 │   └── rubyToPython.ts              # Ruby-to-Python converter (350 lines)
 ├── App.tsx                          # Root component with routing
