@@ -2,7 +2,7 @@
 
 **App Name**: GitHub File Summarizer  
 **Published URL**: https://icm-ruby-md-python-maker.lovable.app  
-**Date**: 2026-02-12  
+**Date**: 2026-03-09 (updated)  
 **Stack**: React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui
 
 ---
