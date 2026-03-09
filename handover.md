@@ -168,7 +168,14 @@ Generates a structured Markdown report with:
 - Manual review checklist (high/medium/low priority)
 - Common Ruby-to-Python pattern reference table
 
-### 4. Results Display (`SummaryDisplay.tsx`)
+### 4. Results Display (Modular Architecture)
+
+The results view is composed of four components:
+
+- **`SummaryDisplay.tsx`** — Orchestrator component (~95 lines). Manages conversion state and composes sub-components.
+- **`DownloadActions.tsx`** — Download, copy, and convert buttons + editable filename field. Uses `fileSave.ts` utility.
+- **`ConversionResults.tsx`** — Displays converted Python code and conversion report side-by-side with download buttons.
+- **`SourceCodeViewer.tsx`** — Collapsible tabbed viewer showing app internal source code.
 
 **Actions available**:
 - **Download Summary** — saves `.md` file (File System Access API with fallback)
@@ -180,6 +187,13 @@ Generates a structured Markdown report with:
 - **Show/Hide Source Code** — expandable section showing app internals in 4 tabs
 
 **Editable field**: Markdown filename can be customized before download.
+
+### 5. File Save Utility (`fileSave.ts`)
+
+Centralized file save logic shared by `DownloadActions` and `ConversionResults`:
+- Uses File System Access API (`showSaveFilePicker`) when available (Chrome/Edge)
+- Falls back to blob URL + `<a>` download for other browsers
+- Handles `AbortError` gracefully when user cancels save dialog
 
 ---
 
