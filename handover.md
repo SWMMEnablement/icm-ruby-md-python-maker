@@ -2,7 +2,7 @@
 
 **App Name**: GitHub File Summarizer  
 **Published URL**: https://icm-ruby-md-python-maker.lovable.app  
-**Date**: 2026-02-12  
+**Date**: 2026-03-09 (updated)  
 **Stack**: React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui
 
 ---
@@ -50,8 +50,11 @@ src/
 ├── assets/
 │   └── hero-image.jpg              # Hero background image
 ├── components/
+│   ├── ConversionResults.tsx        # Python conversion results display
+│   ├── DownloadActions.tsx          # Download, copy, convert action buttons
 │   ├── FileUploadZone.tsx           # Drag & drop file upload component
-│   ├── SummaryDisplay.tsx           # Results display with download/copy/convert actions
+│   ├── SourceCodeViewer.tsx         # Collapsible tabbed source code viewer
+│   ├── SummaryDisplay.tsx           # Results orchestrator (composes sub-components)
 │   └── ui/                          # shadcn/ui component library (60+ components)
 │       ├── button.tsx               # Custom variants: hero, upload
 │       ├── card.tsx
@@ -69,6 +72,7 @@ src/
 │   ├── Index.tsx                    # Main page (hero + upload + results)
 │   └── NotFound.tsx                 # 404 page
 ├── utils/
+│   ├── fileSave.ts                  # Shared file save/download utility
 │   ├── fileSummary.ts               # Core analysis engine (655 lines)
 │   └── rubyToPython.ts              # Ruby-to-Python converter (350 lines)
 ├── App.tsx                          # Root component with routing
@@ -164,7 +168,14 @@ Generates a structured Markdown report with:
 - Manual review checklist (high/medium/low priority)
 - Common Ruby-to-Python pattern reference table
 
-### 4. Results Display (`SummaryDisplay.tsx`)
+### 4. Results Display (Modular Architecture)
+
+The results view is composed of four components:
+
+- **`SummaryDisplay.tsx`** — Orchestrator component (~95 lines). Manages conversion state and composes sub-components.
+- **`DownloadActions.tsx`** — Download, copy, and convert buttons + editable filename field. Uses `fileSave.ts` utility.
+- **`ConversionResults.tsx`** — Displays converted Python code and conversion report side-by-side with download buttons.
+- **`SourceCodeViewer.tsx`** — Collapsible tabbed viewer showing app internal source code.
 
 **Actions available**:
 - **Download Summary** — saves `.md` file (File System Access API with fallback)
@@ -176,6 +187,13 @@ Generates a structured Markdown report with:
 - **Show/Hide Source Code** — expandable section showing app internals in 4 tabs
 
 **Editable field**: Markdown filename can be customized before download.
+
+### 5. File Save Utility (`fileSave.ts`)
+
+Centralized file save logic shared by `DownloadActions` and `ConversionResults`:
+- Uses File System Access API (`showSaveFilePicker`) when available (Chrome/Edge)
+- Falls back to blob URL + `<a>` download for other browsers
+- Handles `AbortError` gracefully when user cancels save dialog
 
 ---
 
@@ -201,11 +219,24 @@ QueryClientProvider → TooltipProvider → Toaster → Sonner → BrowserRouter
 - Error handling for rejected files and oversized files
 - Visual states with Tailwind transitions
 
-### `SummaryDisplay.tsx` (607 lines — candidate for refactoring)
+### `SummaryDisplay.tsx` (~95 lines — refactored)
 - Props: `summary`, `fileName`, `fileContent`, `onReset()`
-- Manages conversion state, copy state, filename editing
-- Contains inline source code display (4 tabs showing app internals)
-- Uses File System Access API (`showSaveFilePicker`) with blob fallback
+- Manages conversion state via `convertRubyToPython()` and `generateConversionReport()`
+- Composes: `DownloadActions`, `ConversionResults`, `SourceCodeViewer`
+
+### `DownloadActions.tsx`
+- Props: `summary`, `isRubyFile`, `isConverting`, `onConvert()`, `onReset()`, `markdownFileName`, `onMarkdownFileNameChange()`
+- Handles download (via `fileSave.ts`), clipboard copy, and convert-to-Python actions
+- Displays the summary in a scrollable `<pre>` block with inline copy button
+
+### `ConversionResults.tsx`
+- Props: `convertedCode`, `conversionReport`, `fileName`
+- Side-by-side display of converted Python code and conversion report
+- Download buttons for both `.py` code and `.md` report (via `fileSave.ts`)
+
+### `SourceCodeViewer.tsx`
+- No props — self-contained collapsible component
+- Tabbed display of app internal source code for transparency
 
 ### `button.tsx` (Custom Variants)
 Two custom button variants added to shadcn/ui:
@@ -859,8 +890,11 @@ src/utils/fileSummary.ts          # 655 lines — full analysis engine
 src/utils/rubyToPython.ts         # 350 lines — Ruby→Python converter
 
 # Components (adapt to your UI framework)
-src/components/FileUploadZone.tsx  # Requires: react-dropzone, lucide-react, shadcn button
-src/components/SummaryDisplay.tsx  # Requires: shadcn card/tabs/input/button, lucide-react
+src/components/FileUploadZone.tsx    # Requires: react-dropzone, lucide-react, shadcn button
+src/components/SummaryDisplay.tsx    # Orchestrator — composes sub-components
+src/components/DownloadActions.tsx   # Download/copy/convert actions
+src/components/ConversionResults.tsx # Python conversion display
+src/components/SourceCodeViewer.tsx  # Collapsible source viewer
 
 # Required shadcn/ui components
 src/components/ui/button.tsx       # Has custom variants (hero, upload)
@@ -934,7 +968,7 @@ generateConversionReport(result: ConversionResult, originalFileName: string): st
 
 ## ⚠️ Known Limitations & TODOs
 
-1. **`SummaryDisplay.tsx` is 607 lines** — should be refactored into smaller components (e.g., `DownloadActions`, `ConversionResults`, `SourceCodeViewer`)
+1. ~~**`SummaryDisplay.tsx` is 607 lines**~~ — ✅ **Refactored** into `SummaryDisplay` (~95 lines), `DownloadActions`, `ConversionResults`, `SourceCodeViewer`, and `fileSave.ts`
 2. **Ruby-to-Python converter is regex-based** — cannot handle complex Ruby metaprogramming, DSLs, or Proc/Lambda syntax reliably
 3. **Security analysis is basic** — only checks for `eval()`, `innerHTML`, SQL patterns, and hardcoded passwords
 4. **No backend** — all processing is client-side; large files may cause browser slowdown
