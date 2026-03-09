@@ -890,8 +890,11 @@ src/utils/fileSummary.ts          # 655 lines — full analysis engine
 src/utils/rubyToPython.ts         # 350 lines — Ruby→Python converter
 
 # Components (adapt to your UI framework)
-src/components/FileUploadZone.tsx  # Requires: react-dropzone, lucide-react, shadcn button
-src/components/SummaryDisplay.tsx  # Requires: shadcn card/tabs/input/button, lucide-react
+src/components/FileUploadZone.tsx    # Requires: react-dropzone, lucide-react, shadcn button
+src/components/SummaryDisplay.tsx    # Orchestrator — composes sub-components
+src/components/DownloadActions.tsx   # Download/copy/convert actions
+src/components/ConversionResults.tsx # Python conversion display
+src/components/SourceCodeViewer.tsx  # Collapsible source viewer
 
 # Required shadcn/ui components
 src/components/ui/button.tsx       # Has custom variants (hero, upload)
