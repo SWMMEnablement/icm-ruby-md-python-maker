@@ -965,7 +965,7 @@ generateConversionReport(result: ConversionResult, originalFileName: string): st
 
 ## ⚠️ Known Limitations & TODOs
 
-1. **`SummaryDisplay.tsx` is 607 lines** — should be refactored into smaller components (e.g., `DownloadActions`, `ConversionResults`, `SourceCodeViewer`)
+1. ~~**`SummaryDisplay.tsx` is 607 lines**~~ — ✅ **Refactored** into `SummaryDisplay` (~95 lines), `DownloadActions`, `ConversionResults`, `SourceCodeViewer`, and `fileSave.ts`
 2. **Ruby-to-Python converter is regex-based** — cannot handle complex Ruby metaprogramming, DSLs, or Proc/Lambda syntax reliably
 3. **Security analysis is basic** — only checks for `eval()`, `innerHTML`, SQL patterns, and hardcoded passwords
 4. **No backend** — all processing is client-side; large files may cause browser slowdown
