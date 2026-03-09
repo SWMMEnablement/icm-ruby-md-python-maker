@@ -219,11 +219,24 @@ QueryClientProvider → TooltipProvider → Toaster → Sonner → BrowserRouter
 - Error handling for rejected files and oversized files
 - Visual states with Tailwind transitions
 
-### `SummaryDisplay.tsx` (607 lines — candidate for refactoring)
+### `SummaryDisplay.tsx` (~95 lines — refactored)
 - Props: `summary`, `fileName`, `fileContent`, `onReset()`
-- Manages conversion state, copy state, filename editing
-- Contains inline source code display (4 tabs showing app internals)
-- Uses File System Access API (`showSaveFilePicker`) with blob fallback
+- Manages conversion state via `convertRubyToPython()` and `generateConversionReport()`
+- Composes: `DownloadActions`, `ConversionResults`, `SourceCodeViewer`
+
+### `DownloadActions.tsx`
+- Props: `summary`, `isRubyFile`, `isConverting`, `onConvert()`, `onReset()`, `markdownFileName`, `onMarkdownFileNameChange()`
+- Handles download (via `fileSave.ts`), clipboard copy, and convert-to-Python actions
+- Displays the summary in a scrollable `<pre>` block with inline copy button
+
+### `ConversionResults.tsx`
+- Props: `convertedCode`, `conversionReport`, `fileName`
+- Side-by-side display of converted Python code and conversion report
+- Download buttons for both `.py` code and `.md` report (via `fileSave.ts`)
+
+### `SourceCodeViewer.tsx`
+- No props — self-contained collapsible component
+- Tabbed display of app internal source code for transparency
 
 ### `button.tsx` (Custom Variants)
 Two custom button variants added to shadcn/ui:
