@@ -12,11 +12,7 @@ export function convertRubyToPython(rubyCode: string): ConversionResult {
   // Basic syntax conversions
   const conversions = [
     // Method definitions
-    {
-      pattern: /def\s+(\w+)(\(.*?\))?/g,
-      replacement: 'def $1$2:',
-      note: 'Converted method definitions to Python syntax'
-    },
+
     
     // End statements
     {
@@ -128,6 +124,8 @@ export function convertRubyToPython(rubyCode: string): ConversionResult {
     }
   ];
 
+  convertedCode = preConvert(convertedCode, conversionNotes);
+
   // Apply conversions
   conversions.forEach(conv => {
     if (conv.pattern.test(convertedCode)) {
@@ -182,6 +180,8 @@ export function convertRubyToPython(rubyCode: string): ConversionResult {
     }
   });
 
+  convertedCode = addBlockColons(convertedCode);
+
   // Clean up extra whitespace and format
   convertedCode = convertedCode
     .replace(/\n\s*\n\s*\n/g, '\n\n') // Remove excessive blank lines
@@ -228,46 +228,94 @@ function addPythonImports(code: string, notes: string[]): string {
 }
 
 function fixIndentation(code: string): string {
+  // Ruby source is already indented; re-scale its indent unit to Python's 4 spaces.
   const lines = code.split('\n');
-  const fixedLines: string[] = [];
-  let indentLevel = 0;
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    
-    if (line === '') {
-      fixedLines.push('');
-      continue;
-    }
-    
-    // Decrease indent for certain patterns
-    if (line.startsWith('else:') || line.startsWith('elif ') || line.startsWith('except') || line.startsWith('finally:')) {
-      indentLevel = Math.max(0, indentLevel - 1);
-    }
-    
-    // Add current line with proper indentation
-    fixedLines.push('    '.repeat(indentLevel) + line);
-    
-    // Increase indent for blocks
-    if (line.endsWith(':') && !line.startsWith('#')) {
-      indentLevel++;
-    }
-    
-    // Handle special cases where indentation should decrease
-    if (i < lines.length - 1) {
-      const nextLine = lines[i + 1].trim();
-      if (nextLine !== '' && !nextLine.startsWith('else') && !nextLine.startsWith('elif') && 
-          !nextLine.startsWith('except') && !nextLine.startsWith('finally') &&
-          !nextLine.startsWith('#') && indentLevel > 0) {
-        // Check if we should decrease indent (heuristic)
-        if (line.includes('return') || line.includes('break') || line.includes('continue')) {
-          // Don't decrease here, let natural flow handle it
-        }
-      }
-    }
-  }
-  
-  return fixedLines.join('\n');
+  const widths = lines
+    .filter((l) => l.trim() !== '')
+    .map((l) => l.replace(/\t/g, '  ').match(/^ */)![0].length)
+    .filter((w) => w > 0);
+  const unit = widths.length ? Math.min(...widths) : 2;
+  return lines
+    .map((l) => {
+      if (l.trim() === '') return '';
+      const w = l.replace(/\t/g, '  ').match(/^ */)![0].length;
+      return '    '.repeat(Math.round(w / unit)) + l.trim();
+    })
+    .join('\n');
+}
+
+/** Structural rewrites that must run before the simple token replacements. */
+function preConvert(code: string, notes: string[]): string {
+  const hasClass = /^\s*class\s+\w+/m.test(code);
+  let out = code;
+
+  // Method definitions: initialize → __init__, add self/cls, strip ?/! suffixes, add colon.
+  out = out.replace(
+    /^([ \t]*)def\s+(self\.)?(\w+)([?!])?(?:\s*\((.*?)\))?[ \t]*$/gm,
+    (_m, indent: string, isSelf: string | undefined, name: string, suffix: string | undefined, params: string | undefined) => {
+      const pyName = name === 'initialize' ? '__init__' : suffix === '?' ? `is_${name}` : name;
+      const args = (params ?? '').trim();
+      if (isSelf) return `${indent}@classmethod\n${indent}def ${pyName}(cls${args ? ', ' + args : ''}):`;
+      if (hasClass && indent.length > 0) return `${indent}def ${pyName}(self${args ? ', ' + args : ''}):`;
+      return `${indent}def ${pyName}(${args}):`;
+    },
+  );
+  if (/def __init__/.test(out)) notes.push('Converted initialize to __init__ constructor');
+
+  // Range loops: (1..10).each do |i| → for i in range(1, 11):
+  out = out.replace(/\((\w+)\.\.\.(\w+)\)\.each\s+do\s*\|(\w+)\|/g, 'for $3 in range($1, $2):');
+  out = out.replace(/\((\w+)\.\.(\w+)\)\.each\s+do\s*\|(\w+)\|/g, 'for $3 in range($1, $2 + 1):');
+  // n.times do |i| → for i in range(n):
+  out = out.replace(/(\w+)\.times\s+do\s*\|(\w+)\|/g, 'for $2 in range($1):');
+  out = out.replace(/(\w+)\.times\s+do\b/g, 'for _ in range($1):');
+  // each_with_index do |x, i| → for i, x in enumerate(...):
+  out = out.replace(/(\w+)\.each_with_index\s+do\s*\|\s*(\w+)\s*,\s*(\w+)\s*\|/g, 'for $3, $2 in enumerate($1):');
+  // while/until
+  out = out.replace(/\buntil\s+/g, 'while not ');
+  out = out.replace(/\belsif\b/g, 'elif');
+
+  // Regex match: x =~ /re/ → re.search(r"re", x)
+  out = out.replace(/(\w+)\s*=~\s*\/((?:\\\/|[^/])+)\/(\w*)/g, (_m, v: string, re: string, flags: string) =>
+    `re.search(r"${re}", ${v}${flags.includes('i') ? ', re.IGNORECASE' : ''})`);
+  // .match(/re/) and .scan(/re/)
+  out = out.replace(/(\w+)\.match\(\/((?:\\\/|[^/])+)\/\)/g, 're.search(r"$2", $1)');
+  out = out.replace(/(\w+)\.scan\(\/((?:\\\/|[^/])+)\/\)/g, 're.findall(r"$2", $1)');
+  // .sub(/re/, x) (gsub is handled later)
+  out = out.replace(/(\w+)\.sub\(\/((?:\\\/|[^/])+)\/,\s*([^)]+)\)/g, 're.sub(r"$2", $3, $1, count=1)');
+
+  // String methods
+  const strMethods: [RegExp, string][] = [
+    [/\.upcase\b(?!\()/g, '.upper()'],
+    [/\.downcase\b(?!\()/g, '.lower()'],
+    [/\.capitalize\b(?!\()/g, '.capitalize()'],
+    [/\.strip\b(?!\()/g, '.strip()'],
+    [/\.reverse\b(?!\()/g, '[::-1]'],
+    [/\.to_s\b/g, '.__str__()'],
+    [/\.to_i\b/g, '.__int__()'],
+    [/\.include\?\(([^)]+)\)/g, '.__contains__($1)'],
+    [/\.start_with\?\(/g, '.startswith('],
+    [/\.end_with\?\(/g, '.endswith('],
+    [/\.split\(\s*\)/g, '.split()'],
+  ];
+  strMethods.forEach(([re, rep]) => { out = out.replace(re, rep); });
+
+  // Double-quoted strings with interpolation become f-strings
+  out = out.replace(/(^|[^\w"])"((?:[^"\\]|\\.)*#\{(?:[^"\\]|\\.)*)"/gm, '$1f"$2"');
+
+  return out;
+}
+
+/** Ensure Python block headers end with a colon. */
+function addBlockColons(code: string): string {
+  return code
+    .split('\n')
+    .map((line) => {
+      const t = line.trim();
+      if (/^(if|elif|while|for)\b/.test(t) && !t.endsWith(':')) return line.replace(/\s*$/, ':');
+      if (t === 'else') return line.replace(/else\s*$/, 'else:');
+      return line;
+    })
+    .join('\n');
 }
 
 export function generateConversionReport(result: ConversionResult, originalFileName: string): string {
