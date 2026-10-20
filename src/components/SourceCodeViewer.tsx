@@ -77,12 +77,15 @@ export function convertRubyToPython(rubyCode: string): ConversionResult {
   onReset: () => void;
 }
 
-export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ 
-  summary, fileName, fileContent, onReset 
+export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({
+  summary, fileName, fileContent, onReset,
 }) => {
-  const [copied, setCopied] = useState(false);
   const [convertedCode, setConvertedCode] = useState<string | null>(null);
+  const [conversionReport, setConversionReport] = useState<string | null>(null);
   const [isConverting, setIsConverting] = useState(false);
+  const [markdownFileName, setMarkdownFileName] = useState(
+    \`\${fileName.split('.')[0]}.md\`
+  );
   const { toast } = useToast();
 
   const isRubyFile = fileName.toLowerCase().endsWith('.rb');
@@ -92,15 +95,16 @@ export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({
     try {
       const result = convertRubyToPython(fileContent);
       setConvertedCode(result.convertedCode);
+      setConversionReport(generateConversionReport(result, fileName));
       toast({
-        title: "Conversion completed!",
-        description: \`Ruby code converted with \${result.confidence} confidence.\`,
+        title: 'Conversion completed!',
+        description: \`Converted with \${result.confidence} confidence.\`,
       });
-    } catch (error) {
+    } catch {
       toast({
-        title: "Conversion failed",
-        description: "Unable to convert Ruby code to Python.",
-        variant: "destructive",
+        title: 'Conversion failed',
+        description: 'Unable to convert Ruby code to Python.',
+        variant: 'destructive',
       });
     } finally {
       setIsConverting(false);
@@ -109,7 +113,13 @@ export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
-      {/* UI components for displaying summary and conversion results */}
+      <Card>
+        <DownloadActions ... />
+      </Card>
+      {convertedCode && conversionReport && (
+        <ConversionResults ... />
+      )}
+      <SourceCodeViewer />
     </div>
   );
 };`,
