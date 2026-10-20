@@ -130,7 +130,8 @@ Deno.serve(async (req) => {
           failed ? ((upstreamError as { message: string } | null)?.message ?? "No tests returned") : null);
         controller.close();
       } catch (e) {
-        await finish("failed", acc || null, (e as Error).message);
+        const gone = /cannot close or enqueue/i.test((e as Error).message);
+        await finish(gone ? "stopped" : "failed", acc || null, gone ? "Stopped by user" : (e as Error).message);
         controller.error(e);
       }
     },
