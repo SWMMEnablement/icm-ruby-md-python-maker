@@ -4,6 +4,7 @@ import { SummaryDisplay } from '@/components/SummaryDisplay';
 import { generateFileSummary } from '@/utils/fileSummary';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Github, Sparkles } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import heroImage from '@/assets/hero-image.jpg';
 
 const Index = () => {
@@ -11,31 +12,35 @@ const Index = () => {
   const [fileContent, setFileContent] = useState<string>('');
   const [summary, setSummary] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
 
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
     setIsProcessing(true);
-    
+
     try {
       const content = await file.text();
       setFileContent(content);
       const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
       const lines = content.split('\n');
-      
+
       const generatedSummary = generateFileSummary({
         content,
         fileName: file.name,
         fileExtension,
         lines
       });
-      
-      // Simulate processing delay for better UX
-      setTimeout(() => {
-        setSummary(generatedSummary);
-        setIsProcessing(false);
-      }, 1500);
+
+      setSummary(generatedSummary);
     } catch (error) {
       console.error('Error processing file:', error);
+      setSelectedFile(null);
+      toast({
+        title: 'Could not read file',
+        description: 'The file could not be processed. Please try a different file.',
+        variant: 'destructive',
+      });
+    } finally {
       setIsProcessing(false);
     }
   };

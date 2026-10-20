@@ -77,12 +77,15 @@ export function convertRubyToPython(rubyCode: string): ConversionResult {
   onReset: () => void;
 }
 
-export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ 
-  summary, fileName, fileContent, onReset 
+export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({
+  summary, fileName, fileContent, onReset,
 }) => {
-  const [copied, setCopied] = useState(false);
   const [convertedCode, setConvertedCode] = useState<string | null>(null);
+  const [conversionReport, setConversionReport] = useState<string | null>(null);
   const [isConverting, setIsConverting] = useState(false);
+  const [markdownFileName, setMarkdownFileName] = useState(
+    \`\${fileName.split('.')[0]}.md\`
+  );
   const { toast } = useToast();
 
   const isRubyFile = fileName.toLowerCase().endsWith('.rb');
@@ -92,15 +95,16 @@ export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({
     try {
       const result = convertRubyToPython(fileContent);
       setConvertedCode(result.convertedCode);
+      setConversionReport(generateConversionReport(result, fileName));
       toast({
-        title: "Conversion completed!",
-        description: \`Ruby code converted with \${result.confidence} confidence.\`,
+        title: 'Conversion completed!',
+        description: \`Converted with \${result.confidence} confidence.\`,
       });
-    } catch (error) {
+    } catch {
       toast({
-        title: "Conversion failed",
-        description: "Unable to convert Ruby code to Python.",
-        variant: "destructive",
+        title: 'Conversion failed',
+        description: 'Unable to convert Ruby code to Python.',
+        variant: 'destructive',
       });
     } finally {
       setIsConverting(false);
@@ -109,7 +113,13 @@ export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
-      {/* UI components for displaying summary and conversion results */}
+      <Card>
+        <DownloadActions ... />
+      </Card>
+      {convertedCode && conversionReport && (
+        <ConversionResults ... />
+      )}
+      <SourceCodeViewer />
     </div>
   );
 };`,
@@ -118,35 +128,36 @@ export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({
     value: 'utils',
     label: 'File Summary',
     title: 'File Summary Utility (src/utils/fileSummary.ts)',
-    code: `export function generateFileSummary(content: string, fileName: string): string {
-  const lines = content.split('\\n');
-  const totalLines = lines.length;
-  const nonEmptyLines = lines.filter(line => line.trim().length > 0).length;
-  
-  const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
-  const isCodeFile = ['js', 'ts', 'jsx', 'tsx', 'py', 'rb', 'java', 'c', 'cpp'].includes(fileExtension);
-  
-  let summary = \`# 📊 File Analysis Report\\n\\n\`;
-  summary += \`**📄 File:** \${fileName}\\n\`;
-  summary += \`**📅 Generated:** \${new Date().toLocaleString()}\\n\\n\`;
-  
-  summary += \`## 📈 Basic Metrics\\n\\n\`;
-  summary += \`| Metric | Value |\\n\`;
-  summary += \`|--------|-------|\\n\`;
-  summary += \`| Total Lines | \${totalLines.toLocaleString()} |\\n\`;
-  summary += \`| Non-empty Lines | \${nonEmptyLines.toLocaleString()} |\\n\`;
-  
-  if (isCodeFile) {
-    const functions = (content.match(/function\\s+\\w+|def\\s+\\w+|class\\s+\\w+/g) || []).length;
-    const comments = (content.match(/\\/\\/.*|\\/\\*[\\s\\S]*?\\*\\/|#.*/g) || []).length;
-    summary += \`| Functions/Classes | \${functions} |\\n\`;
-    summary += \`| Comments | \${comments} |\\n\`;
-  }
-  
-  return summary;
+    code: `interface FileSummaryData {
+  content: string;
+  fileName: string;
+  fileExtension: string;
+  lines: string[];
 }
 
-export function downloadFile(content: string, filename: string) {
+export function generateFileSummary({
+  content, fileName, fileExtension, lines,
+}: FileSummaryData): string {
+  const codeLanguage = getCodeLanguage(fileExtension);
+  const fileType = getFileTypeDescription(fileExtension);
+  const purpose = getPurposeGuess(fileExtension);
+
+  // Enhanced analysis
+  const detailedAnalysis = performDetailedAnalysis(content, fileExtension, lines);
+  const codeMetrics = calculateCodeMetrics(content, fileExtension, lines);
+  const securityAnalysis = performSecurityAnalysis(content, fileExtension);
+  const dependencyAnalysis = analyzeDependencies(content, fileExtension);
+
+  // Builds a comprehensive Markdown report with:
+  // - Executive summary and purpose detection
+  // - Line breakdown and complexity metrics tables
+  // - Documentation quality rating
+  // - Security analysis and dependency breakdown
+  // - Architecture patterns and recommendations
+  return \`# 📋 Comprehensive File Analysis: \${fileName} ...\`;
+}
+
+export function downloadFile(content: string, filename: string): void {
   const blob = new Blob([content], { type: 'text/markdown' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
