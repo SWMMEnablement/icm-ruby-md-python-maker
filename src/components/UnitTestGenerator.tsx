@@ -7,6 +7,8 @@ import { FlaskConical, Download, Copy, Loader2, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { saveFile } from '@/utils/fileSave';
 import { suggestTestFileName } from '@/utils/testFileName';
+import { getDeviceId } from '@/utils/deviceId';
+import { Link } from 'react-router-dom';
 
 interface Props {
   fileName: string;
@@ -37,7 +39,10 @@ export const UnitTestGenerator: React.FC<Props> = ({ fileName, fileContent }) =>
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ fileName, content: fileContent, framework: framework || undefined }),
+          body: JSON.stringify({
+            fileName, content: fileContent, framework: framework || undefined,
+            deviceId: getDeviceId(), testFileName: outName || undefined,
+          }),
         },
       );
       if (!res.ok || !res.body) {
@@ -95,6 +100,7 @@ export const UnitTestGenerator: React.FC<Props> = ({ fileName, fileContent }) =>
             </Button>
           )}
           {loading && <span className="flex items-center text-sm text-muted-foreground"><Loader2 className="w-4 h-4 mr-2 animate-spin" />Writing tests…</span>}
+          <Button variant="link" asChild><Link to="/tests">View all generated tests</Link></Button>
           {tests && !loading && (
             <>
               <Button variant="secondary" onClick={() => saveFile({ content: tests, suggestedName: outName || 'tests.txt', description: 'Test file', accept: { 'text/plain': ['.' + ((outName.split('.').pop()) || 'txt')] } }, toast)}>

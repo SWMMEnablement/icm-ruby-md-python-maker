@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      generated_tests: {
+        Row: {
+          created_at: string
+          device_id: string
+          error: string | null
+          file_name: string
+          framework: string | null
+          id: string
+          language: string
+          status: string
+          test_file_name: string | null
+          tests: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          error?: string | null
+          file_name: string
+          framework?: string | null
+          id?: string
+          language: string
+          status?: string
+          test_file_name?: string | null
+          tests?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          error?: string | null
+          file_name?: string
+          framework?: string | null
+          id?: string
+          language?: string
+          status?: string
+          test_file_name?: string | null
+          tests?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

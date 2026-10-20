@@ -8,10 +8,14 @@ import {
   withLovableAiGatewayRunIdHeader,
 } from "./run-id.ts";
 
+import { admin, languageOf } from "../_shared/test-runs.ts";
+
 const BodySchema = z.object({
   fileName: z.string().trim().min(1).max(255),
   content: z.string().min(1).max(200_000),
   framework: z.string().trim().max(50).optional(),
+  deviceId: z.string().uuid().optional(),
+  testFileName: z.string().trim().max(255).optional(),
 });
 
 const json = (body: unknown, status: number) =>
@@ -35,7 +39,21 @@ Deno.serve(async (req) => {
   }
   const parsed = BodySchema.safeParse(raw);
   if (!parsed.success) return json({ error: parsed.error.flatten().fieldErrors }, 400);
-  const { fileName, content, framework } = parsed.data;
+  const { fileName, content, framework, deviceId, testFileName } = parsed.data;
+
+  const db = admin();
+  let runId: string | null = null;
+  if (deviceId) {
+    const { data } = await db.from("generated_tests").insert({
+      device_id: deviceId, file_name: fileName, test_file_name: testFileName ?? null,
+      language: languageOf(fileName), framework: framework ?? null, status: "running",
+    }).select("id").single();
+    runId = data?.id ?? null;
+  }
+  const finish = async (status: string, tests: string | null, error: string | null) => {
+    if (!runId) return;
+    await db.from("generated_tests").update({ status, tests, error, updated_at: new Date().toISOString() }).eq("id", runId);
+  };
 
   const runIdFetch = createLovableAiGatewayRunIdFetch(getLovableAiGatewayRunId(req));
   const provider = createOpenAI({
@@ -92,19 +110,32 @@ Deno.serve(async (req) => {
       status === 402 ? "AI credits are used up. Add credits in Settings → Plans & credits."
       : status === 429 ? "Too many requests right now. Please try again in a minute."
       : message;
+    await finish("failed", null, friendly);
     return json({ error: friendly }, status);
   }
+  const dec = new TextDecoder();
+  let acc = "";
   const body = new ReadableStream({
     async start(controller) {
-      if (!first.done) controller.enqueue(first.value);
-      while (true) {
-        const c = await reader.read();
-        if (c.done) break;
-        controller.enqueue(c.value);
+      try {
+        if (!first.done) { acc += dec.decode(first.value, { stream: true }); controller.enqueue(first.value); }
+        while (true) {
+          const c = await reader.read();
+          if (c.done) break;
+          acc += dec.decode(c.value, { stream: true });
+          controller.enqueue(c.value);
+        }
+        const failed = upstreamError || !acc.trim();
+        await finish(failed ? "failed" : "passed", acc || null,
+          failed ? ((upstreamError as { message: string } | null)?.message ?? "No tests returned") : null);
+        controller.close();
+      } catch (e) {
+        const gone = /cannot close or enqueue/i.test((e as Error).message);
+        await finish(gone ? "stopped" : "failed", acc || null, gone ? "Stopped by user" : (e as Error).message);
+        controller.error(e);
       }
-      controller.close();
     },
-    cancel: (r) => reader.cancel(r),
+    cancel: async (r) => { await finish("stopped", acc || null, "Stopped by user"); await reader.cancel(r); },
   });
   return withLovableAiGatewayRunIdHeader(
     new Response(body, { status: 200, headers: response.headers }),
