@@ -53,7 +53,7 @@ export function convertRubyToPython(rubyCode: string): ConversionResult {
       note: 'Converted class inheritance to Python syntax'
     },
     {
-      pattern: /class\s+(\w+)/g,
+      pattern: /class\s+(\w+)(?!\s*[(:])/g,
       replacement: 'class $1:',
       note: 'Converted class definitions to Python syntax'
     },
@@ -110,8 +110,8 @@ export function convertRubyToPython(rubyCode: string): ConversionResult {
     
     // String methods
     {
-      pattern: /(\w+)\.gsub\(([^,]+),\s*([^)]+)\)/g,
-      replacement: 're.sub($2, $3, $1)',
+      pattern: /(\w+)\.gsub\(\/([^/]+)\/,\s*([^)]+)\)/g,
+      replacement: 're.sub(r"$2", $3, $1)',
       note: 'Converted .gsub to re.sub() - requires "import re"'
     },
     
