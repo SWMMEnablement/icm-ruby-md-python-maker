@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DownloadActions } from '@/components/DownloadActions';
 import { ConversionResults } from '@/components/ConversionResults';
 import { SourceCodeViewer } from '@/components/SourceCodeViewer';
+import { UnitTestGenerator } from '@/components/UnitTestGenerator';
 
 interface SummaryDisplayProps {
   summary: string;
@@ -79,6 +80,8 @@ export const SummaryDisplay: React.FC<SummaryDisplayProps> = ({
           fileName={fileName}
         />
       )}
+
+      <UnitTestGenerator fileName={fileName} fileContent={fileContent} />
 
       <SourceCodeViewer />
 

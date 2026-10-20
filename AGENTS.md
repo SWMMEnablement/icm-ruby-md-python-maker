@@ -1,0 +1,2 @@
+- AI unit-test generation runs in the `generate-unit-tests` backend function (streamed plain text); keep the AI key and prompts server-side.
+- Ruby→Python converter changes must keep `src/utils/rubyToPython.test.ts` passing (`bun run test`); add a test per fixed pattern.
