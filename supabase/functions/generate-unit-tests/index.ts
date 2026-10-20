@@ -110,19 +110,31 @@ Deno.serve(async (req) => {
       status === 402 ? "AI credits are used up. Add credits in Settings → Plans & credits."
       : status === 429 ? "Too many requests right now. Please try again in a minute."
       : message;
+    await finish("failed", null, friendly);
     return json({ error: friendly }, status);
   }
+  const dec = new TextDecoder();
+  let acc = "";
   const body = new ReadableStream({
     async start(controller) {
-      if (!first.done) controller.enqueue(first.value);
-      while (true) {
-        const c = await reader.read();
-        if (c.done) break;
-        controller.enqueue(c.value);
+      try {
+        if (!first.done) { acc += dec.decode(first.value, { stream: true }); controller.enqueue(first.value); }
+        while (true) {
+          const c = await reader.read();
+          if (c.done) break;
+          acc += dec.decode(c.value, { stream: true });
+          controller.enqueue(c.value);
+        }
+        const failed = upstreamError || !acc.trim();
+        await finish(failed ? "failed" : "passed", acc || null,
+          failed ? ((upstreamError as { message: string } | null)?.message ?? "No tests returned") : null);
+        controller.close();
+      } catch (e) {
+        await finish("failed", acc || null, (e as Error).message);
+        controller.error(e);
       }
-      controller.close();
     },
-    cancel: (r) => reader.cancel(r),
+    cancel: async (r) => { await finish("stopped", acc || null, "Stopped by user"); await reader.cancel(r); },
   });
   return withLovableAiGatewayRunIdHeader(
     new Response(body, { status: 200, headers: response.headers }),

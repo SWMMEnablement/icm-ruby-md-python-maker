@@ -7,6 +7,8 @@ import { FlaskConical, Download, Copy, Loader2, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { saveFile } from '@/utils/fileSave';
 import { suggestTestFileName } from '@/utils/testFileName';
+import { getDeviceId } from '@/utils/deviceId';
+import { Link } from 'react-router-dom';
 
 interface Props {
   fileName: string;
