@@ -110,9 +110,9 @@ export function convertRubyToPython(rubyCode: string): ConversionResult {
     
     // String methods
     {
-      pattern: /\.gsub\(/g,
-      replacement: '.replace(',
-      note: 'Converted .gsub to .replace (functionality may differ)'
+      pattern: /(\w+)\.gsub\(([^,]+),\s*([^)]+)\)/g,
+      replacement: 're.sub($2, $3, $1)',
+      note: 'Converted .gsub to re.sub() - requires "import re"'
     },
     
     // Range syntax
