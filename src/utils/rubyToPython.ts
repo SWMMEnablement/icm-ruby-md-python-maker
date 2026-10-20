@@ -32,39 +32,44 @@ export function convertRubyToPython(rubyCode: string): ConversionResult {
       note: 'Converted Ruby string interpolation to Python f-string format'
     },
     
-    // Puts/print statements
+    // Puts/print statements (capture the whole expression and close the paren)
     {
-      pattern: /puts\s+/g,
-      replacement: 'print(',
-      note: 'Converted "puts" to "print()" - remember to add closing parentheses'
+      pattern: /puts\s+(.+)/g,
+      replacement: 'print($1)',
+      note: 'Converted "puts" to "print()"'
     },
-    
-    // Variable assignment and method calls
+
+    // .each do |x| blocks → Python for loops
     {
-      pattern: /\.each\s*do\s*\|([^|]+)\|/g,
-      replacement: '# for $1 in ',
-      note: 'Converted .each do blocks to Python for loops (manual adjustment needed)'
+      pattern: /(\w+)\.each\s+do\s*\|([^|]+)\|/g,
+      replacement: 'for $2 in $1:',
+      note: 'Converted .each do blocks to Python for loops'
     },
-    
-    // Class definitions
+
+    // Class definitions (including inheritance: class Foo < Bar → class Foo(Bar):)
     {
-      pattern: /class\s+(\w+)(\s*<\s*(\w+))?/g,
-      replacement: 'class $1$2:',
+      pattern: /class\s+(\w+)\s*<\s*(\w+)/g,
+      replacement: 'class $1($2):',
+      note: 'Converted class inheritance to Python syntax'
+    },
+    {
+      pattern: /class\s+(\w+)/g,
+      replacement: 'class $1:',
       note: 'Converted class definitions to Python syntax'
     },
-    
+
+    // Class variables (must run BEFORE instance variables so @@var isn't mangled)
+    {
+      pattern: /@@(\w+)/g,
+      replacement: '$1',
+      note: 'Class variables (@@var) converted - verify Python class variable semantics'
+    },
+
     // Instance variables
     {
       pattern: /@(\w+)/g,
       replacement: 'self.$1',
       note: 'Converted Ruby instance variables (@var) to Python (self.var)'
-    },
-    
-    // Class variables
-    {
-      pattern: /@@(\w+)/g,
-      replacement: '$1',  // Class variables need manual handling
-      note: 'Class variables (@@var) converted - may need manual adjustment for Python class variables'
     },
     
     // Boolean values
@@ -84,16 +89,16 @@ export function convertRubyToPython(rubyCode: string): ConversionResult {
       note: 'Converted "nil" to "None"'
     },
     
-    // Array/Hash operations
+    // Array/Hash operations: x.length / x.size → len(x)
     {
-      pattern: /\.length\b/g,
-      replacement: '.len() if hasattr(obj, "__len__") else len(obj)',
-      note: 'Converted .length to len() function (manual adjustment needed)'
+      pattern: /(\w+)\.length\b/g,
+      replacement: 'len($1)',
+      note: 'Converted .length to len() function'
     },
     {
-      pattern: /\.size\b/g,
-      replacement: '.len() if hasattr(obj, "__len__") else len(obj)',
-      note: 'Converted .size to len() function (manual adjustment needed)'
+      pattern: /(\w+)\.size\b/g,
+      replacement: 'len($1)',
+      note: 'Converted .size to len() function'
     },
     
     // Conditional statements
