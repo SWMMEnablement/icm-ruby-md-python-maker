@@ -97,7 +97,7 @@ export const UnitTestGenerator: React.FC<Props> = ({ fileName, fileContent }) =>
           {loading && <span className="flex items-center text-sm text-muted-foreground"><Loader2 className="w-4 h-4 mr-2 animate-spin" />Writing tests…</span>}
           {tests && !loading && (
             <>
-              <Button variant="secondary" onClick={() => saveFile(tests, outName || 'tests.txt', 'text/plain')}>
+              <Button variant="secondary" onClick={() => saveFile({ content: tests, suggestedName: outName || 'tests.txt', description: 'Test file', accept: { 'text/plain': ['.' + ((outName.split('.').pop()) || 'txt')] } }, toast)}>
                 <Download className="w-4 h-4 mr-2" /> Download Tests
               </Button>
               <Button variant="outline" onClick={async () => { await navigator.clipboard.writeText(tests); toast({ title: 'Copied!' }); }}>
