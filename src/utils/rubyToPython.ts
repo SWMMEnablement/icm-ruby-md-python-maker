@@ -63,7 +63,7 @@ export function convertRubyToPython(rubyCode: string): ConversionResult {
 
     // Instance variables
     {
-      pattern: /@(\w+)/g,
+      pattern: /@(?!classmethod\b|staticmethod\b|property\b)(\w+)/g,
       replacement: 'self.$1',
       note: 'Converted Ruby instance variables (@var) to Python (self.var)'
     },
