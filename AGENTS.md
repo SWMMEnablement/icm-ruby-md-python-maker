@@ -1,3 +1,4 @@
 - AI unit-test generation runs in the `generate-unit-tests` backend function (streamed plain text); keep the AI key and prompts server-side.
 - Ruby→Python converter changes must keep `src/utils/rubyToPython.test.ts` passing (`bun run test`); add a test per fixed pattern.
 - Generated unit tests are stored in `generated_tests` (service-role only, no RLS policies) and keyed by an anonymous per-browser device id; read via the `list-generated-tests` function because the app has no sign-in.
+- Test tooling stays on vitest 3.x (with jsdom and @testing-library): the project builds on Vite 5, and vitest 4+ imports `vite/module-runner`, which Vite 5 does not export, so `bun run test` fails at startup.
